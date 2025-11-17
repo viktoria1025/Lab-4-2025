@@ -1,33 +1,10 @@
 package functions;
 import java.io.*;
 
-public class ArrayTabulatedFunction implements TabulatedFunction, Externalizable {
+public class ArrayTabulatedFunction implements TabulatedFunction, Serializable {
     private FunctionPoint[] points;
     private int pointsCount;
-    public ArrayTabulatedFunction() {
-    }
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        // Записываем колво точек в поток
-        out.writeInt(pointsCount);
-        for (int i = 0; i < pointsCount; i++) {
-            // Записываем координату X
-            out.writeDouble(points[i].getX());
-            // Записываем координату Y
-            out.writeDouble(points[i].getY());
-        }
-    }
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        // Читаем количество точек
-        pointsCount = in.readInt(); // Создаем новый массив для хранения точек
-        points = new FunctionPoint[pointsCount];
-        for (int i = 0; i < pointsCount; i++) {
-            double x = in.readDouble();
-            double y = in.readDouble();
-            points[i] = new FunctionPoint(x, y); // Создаем новую точку FunctionPoint
-        }
-    }
+
 
     // Конструктор1 : создает объект функции по заданным границам области определения и кол-ва точек для табулирования
     public ArrayTabulatedFunction(double leftX, double rightX, int pointsCount) {
@@ -103,6 +80,12 @@ public class ArrayTabulatedFunction implements TabulatedFunction, Externalizable
             return Double.NaN;
         }
 
+        for (int i = 0; i < pointsCount; i++) {
+            if (Math.abs(x - points[i].getX()) < 1e-10) {
+                return points[i].getY();
+            }
+        }
+
         for (int i = 0; i < pointsCount - 1; i++) {
             double x1 = points[i].getX();
             double x2 = points[i + 1].getX();
@@ -132,10 +115,10 @@ public class ArrayTabulatedFunction implements TabulatedFunction, Externalizable
             throw new FunctionPointIndexOutOfBoundsException(index);
         }
         // Проверка корректности по x
-        if (index > 0 && point.getX() <= points[index - 1].getX()) {
+        if (index > 0 && point.getX() <= points[index - 1].getX() + 1e-10) {
             throw new InappropriateFunctionPointException("Неккоректно по х");
         }
-        if (index < pointsCount - 1 && point.getX() >= points[index + 1].getX()) {
+        if (index < pointsCount - 1 && point.getX() >= points[index + 1].getX() - 1e-10) {
             throw new InappropriateFunctionPointException("Неккоректно по х");
         }
         points[index] = new FunctionPoint(point);
@@ -153,10 +136,10 @@ public class ArrayTabulatedFunction implements TabulatedFunction, Externalizable
             throw new FunctionPointIndexOutOfBoundsException(index);
         }
         // Проверка корректности позиции
-        if (index > 0 && x <= points[index - 1].getX()) {
+        if (index > 0 && x <= points[index - 1].getX() + 1e-10) {
             throw new InappropriateFunctionPointException("Неккоректно по х");
         }
-        if (index < pointsCount - 1 && x >= points[index + 1].getX()) {
+        if (index < pointsCount - 1 && x >= points[index + 1].getX() - 1e-10) {
             throw new InappropriateFunctionPointException("Неккоректно по х");
         }
         points[index].setX(x);
@@ -194,7 +177,7 @@ public class ArrayTabulatedFunction implements TabulatedFunction, Externalizable
         }
 
         // Проверка на дублирование
-        if (IndexIns < pointsCount && points[IndexIns].getX() == point.getX()) {
+        if (IndexIns < pointsCount && Math.abs(points[IndexIns].getX() - point.getX()) < 1e-10) {
             throw new InappropriateFunctionPointException("Точка с такой х " + point.getX() + " уже есть");
         }
 

@@ -1,7 +1,7 @@
 package functions;
 import java.io.*;
 
-public class FunctionPoint {
+public class FunctionPoint implements Serializable {
     private double x;
     private double y;
 

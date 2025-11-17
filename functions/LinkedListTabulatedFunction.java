@@ -1,7 +1,42 @@
 package functions;
 import java.io.*;
 
-public class LinkedListTabulatedFunction implements TabulatedFunction {
+public class LinkedListTabulatedFunction implements TabulatedFunction, Externalizable {
+
+    public LinkedListTabulatedFunction() {
+        head = new FunctionNode(null, null, null);
+        head.setPrev(head);
+        head.setNext(head);
+        this.pointsCount = 0;
+    }
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeInt(pointsCount);
+        FunctionNode current = head.getNext();
+        while (current != head) {
+            // Сериализуем только координаты x и y
+            out.writeDouble(current.getPoint().getX());
+            out.writeDouble(current.getPoint().getY());
+            current = current.getNext();
+        }
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        // Очищаем текущий список
+        head = new FunctionNode(null, null, null);
+        head.setPrev(head);
+        head.setNext(head);
+        pointsCount = 0;
+
+        int size = in.readInt();
+        for (int i = 0; i < size; i++) {
+            // Читаем координаты и создаем новые узлы
+            double x = in.readDouble();
+            double y = in.readDouble();
+            addNodeToTail(new FunctionPoint(x, y));
+        }
+    }
     private class FunctionNode {
         private FunctionPoint point; // Данные узла - точка функции
         private FunctionNode prev; // Ссылка на предыдущий узел
@@ -118,14 +153,21 @@ public class LinkedListTabulatedFunction implements TabulatedFunction {
     }
 
     public double getFunctionValue(double x) {
-        if (pointsCount == 0)
-            return Double.NaN;
+        if (pointsCount == 0) return Double.NaN;
         if (x < getLeftDomainBorder() || x > getRightDomainBorder()) {
             return Double.NaN;
         }
 
-        // Поиск интервала для интерполяции
         FunctionNode current = head.getNext();
+        while (current != head) {
+            if (Math.abs(x - current.getPoint().getX()) < 1e-10) {
+                return current.getPoint().getY();
+            }
+            current = current.getNext();
+        }
+
+        // Интерполяция
+        current = head.getNext();
         for (int i = 0; i < pointsCount - 1; i++) {
             double x1 = current.getPoint().getX();
             double x2 = current.getNext().getPoint().getX();
@@ -137,7 +179,6 @@ public class LinkedListTabulatedFunction implements TabulatedFunction {
             }
             current = current.getNext();
         }
-
         return Double.NaN;
     }
 
@@ -152,10 +193,10 @@ public class LinkedListTabulatedFunction implements TabulatedFunction {
     public void setPoint(int index, FunctionPoint point) throws InappropriateFunctionPointException {
         FunctionNode node = getNodeByIndex(index);
 
-        if (index > 0 && point.getX() <= getNodeByIndex(index - 1).getPoint().getX()) {
+        if (index > 0 && point.getX() <= getNodeByIndex(index - 1).getPoint().getX() + 1e-10) {
             throw new InappropriateFunctionPointException("x должен быть больше предыдущего");
         }
-        if (index < pointsCount - 1 && point.getX() >= getNodeByIndex(index + 1).getPoint().getX()) {
+        if (index < pointsCount - 1 && point.getX() >= getNodeByIndex(index + 1).getPoint().getX() - 1e-10) {
             throw new InappropriateFunctionPointException("x должен быть меньше следующего");
         }
 
@@ -195,7 +236,7 @@ public class LinkedListTabulatedFunction implements TabulatedFunction {
             insertIndex++;
         }
 
-        if (current != head && current.getPoint().getX() == point.getX()) {
+        if (current != head && Math.abs(current.getPoint().getX() - point.getX()) < 1e-10) {
             throw new InappropriateFunctionPointException("Точка с х " + point.getX() + " уже существует");
         }
 

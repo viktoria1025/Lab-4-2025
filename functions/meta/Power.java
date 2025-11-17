@@ -20,11 +20,28 @@ public class Power implements Function {
     }
 
     public double getFunctionValue(double x) {
+        // Сначала проверяем область определения для x
         if (x < getLeftDomainBorder() || x > getRightDomainBorder()) {
             return Double.NaN;
         }
 
         double base = f.getFunctionValue(x);
-        return Math.exp(power * Math.log(base));
+
+        // Проверяем основание для возведения в степень
+        if (Double.isNaN(base)) {
+            return Double.NaN;
+        }
+
+        // Для целых степеней можно использовать простое умножение
+        if (power == 2.0) {
+            return base * base;  // для квадрата
+        }
+
+        // Для дробных степеней нужна осторожность
+        if (base < 0 && power != (int) power) {
+            return Double.NaN;  // корень из отрицательного числа
+        }
+
+        return Math.pow(base, power);
     }
 }

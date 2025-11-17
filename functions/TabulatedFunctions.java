@@ -11,7 +11,7 @@ public class TabulatedFunctions {
             throw new IllegalArgumentException("Границы выходят за область определения");
         }
         if (pointsCount < 2) throw new IllegalArgumentException("Нужно минимум 2 точки");
-        if (leftX >= rightX) throw new IllegalArgumentException("Левая граница должна быть меньше правой");
+        if (leftX >= rightX - 1e-10) throw new IllegalArgumentException("Левая граница должна быть меньше правой");
 
         double[] values = new double[pointsCount];
         double step = (rightX - leftX) / (pointsCount - 1);

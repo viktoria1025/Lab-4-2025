@@ -12,17 +12,17 @@ public class Composition implements Function {
     }
 
     public double getLeftDomainBorder() {
-        return f1.getLeftDomainBorder();
+        return f2.getLeftDomainBorder();
     }
 
     public double getRightDomainBorder() {
-        return f1.getRightDomainBorder();
+        return f2.getRightDomainBorder();
     }
 
     public double getFunctionValue(double x) {
         if (x < getLeftDomainBorder() || x > getRightDomainBorder()) {
             return Double.NaN;
         }
-        return f2.getFunctionValue(f1.getFunctionValue(x));
+        return f1.getFunctionValue(f2.getFunctionValue(x));
     }
 }

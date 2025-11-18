@@ -21,6 +21,9 @@ public class Log implements Function {
         if (x <= 0) {
             return Double.NaN;
         }
+        if (x == 1.0) {
+            return 0.0;
+        }
         return Math.log(x) / Math.log(basis);
     }
     public double getBasis() {
